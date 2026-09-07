@@ -46,9 +46,9 @@ final class ModelTests: XCTestCase {
 }
 
 final class ResolverTests: XCTestCase {
-    func testNaiveTieBreakIsDirectoryOrderSoTheStaleSiblingWins() {
-        // Same query, same environment. The v1 skill has more matching text (it is older and
-        // accumulated more keywords), and on a tie directory order favours "v1" < "v2".
+    func testNaiveRankingHandsOutTheStaleSibling() {
+        // Same query, same environment. The superseded v1 skill outscores v2 because it is older
+        // and accumulated more matching keywords; keywords are all a text ranker can see.
         let env = Environment(files: ["App.xcodeproj", "ExportOptions.plist"], toolVersions: ["ios": 26])
         let naive = resolver.resolve("archive and export an ipa for beta testers", in: env, policy: .naive)
         XCTAssertEqual(naive.first?.skill.id, "release-testflight-v1")
@@ -137,7 +137,7 @@ final class EvaluatorTests: XCTestCase {
         XCTAssertEqual(m.siblingShareOfMisses, 0)
     }
 
-    // The next two tests pin the numbers the article quotes. If the fixture or the policy
+    // The next three tests pin the numbers the article quotes. If the fixture or the policy
     // changes, these fail before a stale claim can be published.
     func testNaiveResolverMissesAreOverwhelminglyWrongSiblings() {
         let (m, _) = evaluator.evaluate(Fixture.benchmark, policy: .naive)
@@ -167,14 +167,22 @@ final class EvaluatorTests: XCTestCase {
     }
 
     func testEachHygieneRuleAloneIsWorseThanAllFour() {
-        let alone: [ResolutionPolicy] = [
-            ResolutionPolicy(excludeSuperseded: true, enforcePreconditions: false, rerankSiblings: false),
-            ResolutionPolicy(excludeSuperseded: false, enforcePreconditions: true, rerankSiblings: false),
-            ResolutionPolicy(excludeSuperseded: false, enforcePreconditions: false, rerankSiblings: true),
+        // Pins the three ablation rows the article and README quote, not just the inequalities.
+        // (hits, wrong siblings, wrong families, stale top-1, precondition misses) out of 32.
+        let alone: [(ResolutionPolicy, Int, Int, Int, Int, Int)] = [
+            (ResolutionPolicy(excludeSuperseded: true, enforcePreconditions: false, rerankSiblings: false), 23, 8, 1, 0, 4),
+            (ResolutionPolicy(excludeSuperseded: false, enforcePreconditions: true, rerankSiblings: false), 23, 5, 4, 1, 0),
+            (ResolutionPolicy(excludeSuperseded: false, enforcePreconditions: false, rerankSiblings: true), 26, 5, 1, 0, 3),
         ]
         let (all, _) = evaluator.evaluate(Fixture.benchmark, policy: .hygienic)
-        for p in alone {
+        for (p, hits, siblings, families, stale, missing) in alone {
             let (m, _) = evaluator.evaluate(Fixture.benchmark, policy: p)
+            XCTAssertEqual(m.recallAt1, Double(hits) / 32, accuracy: 1e-9)
+            XCTAssertEqual(m.wrongSiblingRate, Double(siblings) / 32, accuracy: 1e-9)
+            XCTAssertEqual(m.wrongFamilyRate, Double(families) / 32, accuracy: 1e-9)
+            XCTAssertEqual(m.staleTopRate, Double(stale) / 32, accuracy: 1e-9)
+            XCTAssertEqual(m.preconditionMissRate, Double(missing) / 32, accuracy: 1e-9)
+            XCTAssertEqual(m.emptyRate, 0)
             XCTAssertGreaterThan(m.wrongSiblingRate, all.wrongSiblingRate)
             XCTAssertLessThanOrEqual(m.recallAt1, all.recallAt1)
         }

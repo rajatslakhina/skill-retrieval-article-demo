@@ -2,7 +2,7 @@
 
 **A skills library is a retrieval system, not a folder of documentation.** This package treats it as one: an index of `Skill` entries with capability families, versions, dates and *machine-checkable* preconditions; a deliberately ordinary TF-IDF resolver; a 32-case benchmark; and an evaluator that grades the thing nobody measures — the **wrong-sibling rate**, where the resolver lands in the right capability family and hands the agent the wrong procedure inside it.
 
-Article: (added after publish)
+Article: [Your Skills Library Is a Retrieval System. Nine of Its Ten Misses Were the Wrong Sibling.](https://medium.com/@er.rajatlakhina/your-skills-library-is-a-retrieval-system-nine-of-its-ten-misses-were-the-wrong-sibling-90424c46cbdc) (Medium)
 
 ## What it shows
 
@@ -54,8 +54,12 @@ The app has two tabs: **Benchmark** (four toggles, the metrics grid, all 32 case
 - `swift build` and `swift test` (Swift 6.0.3, Linux aarch64): 18/18 passing, 0 warnings.
 - **Simulator run: not completed for this release.** The automated run that produced this repo found Xcode already open on an unrelated production project and, by rule, did not touch it. `Demo.xcodeproj` was hand-authored and checked for brace/paren balance and dangling object references, and the SwiftUI view uses only iOS 17 APIs (`Grid`, `NavigationStack`, `TabView`) — but no screenshot exists yet, and `Demo/Screenshots/` says so. If you run it, a PR with a screenshot is welcome.
 
+## Article visuals
+
+`Article/` holds the three figures used in the Medium piece (header card, outcomes diagram, code card), rendered from the same numbers the tests pin.
+
 ## Credits
 
-The measurement framing follows three papers: SkillJuror ([arXiv 2606.11543](https://arxiv.org/abs/2606.11543)), SkillResolve-Bench ([arXiv 2606.10388](https://arxiv.org/abs/2606.10388)) and SkillTV-Bench ([arXiv 2608.05573](https://arxiv.org/abs/2608.05573)). The fixture, resolver and benchmark here are original and much smaller than any of them.
+The measurement framing follows three papers: SkillJuror ([arXiv 2606.11543](https://arxiv.org/abs/2606.11543)), "Right Family, Wrong Skill" / SameCapRisk-Bench ([arXiv 2606.10388](https://arxiv.org/abs/2606.10388), whose harmful-sibling rate this repo's wrong-sibling rate is a small-scale cousin of) and SkillTV-Bench ([arXiv 2608.05573](https://arxiv.org/abs/2608.05573)). The fixture, resolver and benchmark here are original and much smaller than any of them.
 
 MIT licensed.
